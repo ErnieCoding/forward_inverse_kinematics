@@ -17,7 +17,7 @@ def HomogeneousTranRot_X(theta_x):
     return np.array([
         [1, 0, 0, 0],
         [0, cos_theta, -sin_theta, 0],
-        [0, sin_theta, cos_theta, 0]
+        [0, sin_theta, cos_theta, 0],
         [0, 0, 0, 1]
     ])
 
@@ -65,12 +65,7 @@ def forward_kinematics(theta: list[int], x, y, h = 0.082):
 
     t_4_5 = HomogeneousTranTranslation(limbs["l5"], 0, 0) @ HomogeneousTranRot_X(theta[5])
 
-    homogeneous_Rot_tran_5_tip = np.array([
-        [1, 0, 0, 0], 
-        [0, 1, 0, 0], 
-        [0, 0, 1, 0],
-        [0, 0, 0, 1]
-    ])
-    t_5_tip = HomogeneousTranTranslation(limbs["l6"]) @ homogeneous_Rot_tran_5_tip
+    homogeneous_Rot_tran_5_tip = np.eye(4) # no rotation at the tip
+    t_5_tip = HomogeneousTranTranslation(limbs["l6"], 0, 0) @ homogeneous_Rot_tran_5_tip
 
     return t_world_0 @ t_0_1 @ t_1_2 @ t_2_3 @ t_3_4 @ t_4_5 @ t_5_tip
