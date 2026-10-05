@@ -4,12 +4,13 @@ import math
 from numpy.typing import NDArray
 
 limbs = {
-    "l1": (0.0, 0.0, 0.0735),
-    "l2": (0.0, 0.0, 0.0648),
-    "l3": (0.1160, 0.0, 0.0),
-    "l4": (0.1350, 0.0, 0.0),
-    "l5": (0.0637, 0.0, 0.0),
-    "l6": (0.0984, 0.0, 0.0),
+    # measured in CAD
+    "l1": (0.0306, 0.0008,  0.0690),
+    "l2": (0.0318, 0.0016,  0.1125),
+    "l3": (0.0915, 0.0021,  0.0992),
+    "l4": (0.0615, 0.0000,  0.0000),
+    "l5": (0.0234, 0.0006,  0.0202),
+    "l6": (0.0810, 0.0000, -0.0123),
 }
 
 def HomogeneousTranRot_X(theta_x):
@@ -51,7 +52,7 @@ def HomogeneousTranTranslation(x,y,z):
 
     return identity
 
-def forward_kinematics(theta: list[float] | NDArray[np.float64], x, y, h = 0.082):
+def forward_kinematics(theta: list[float] | NDArray[np.float64], x=0.0452, y=0.0, h=0.0468):
     """
     theta: a list of angles starting from base wrt to world, then each joint wrt to the previous.
     """
@@ -72,7 +73,15 @@ def forward_kinematics(theta: list[float] | NDArray[np.float64], x, y, h = 0.082
 
     return t_world_0 @ t_0_1 @ t_1_2 @ t_2_3 @ t_3_4 @ t_4_5 @ t_5_tip
 
-def inverse_kinematics(target_x, target_y, target_z, base_x, base_y, base_z = 0.082):
+def inverse_kinematics(
+    target_x,
+    target_y,
+    target_z,
+    base_x=0.0452,
+    base_y=0.0,
+    base_z=0.0468,
+    initial_guess: list[float] | None = None,
+):
     """
     Takes an end effector position and base position, both relative to the world.
     Returns the joint angles needed to reach the end effector position.
@@ -86,6 +95,21 @@ def inverse_kinematics(target_x, target_y, target_z, base_x, base_y, base_z = 0.
         error = difference.dot(difference)
         return error
 
-    initial_guess = np.zeros(6, dtype=np.float64)
+    if initial_guess is None:
+        initial_guess = np.zeros(6, dtype=np.float64)
+    else:
+        initial_guess = np.array(initial_guess, dtype=np.float64)
     result = scipy.optimize.minimize(error_fn, initial_guess)
     return result.x
+
+def compare_default_position_utility():
+    x, y, z = forward_kinematics([0.0] * 6)[:3, 3]
+    print('Forward kinematics for all 0 degrees')
+    print('x:', x)
+    print('y:', y)
+    print('z:', z)
+    print()
+    print('Default position measured in CAD')
+    print('x:', 0.3649)
+    print('y:', 0.0053)
+    print('z:', 0.3353)
