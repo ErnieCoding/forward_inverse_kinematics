@@ -11,47 +11,66 @@ limbs = {
 }
 
 def HomogeneousTranRot_X(theta_x):
-    return np.array([[1, 0, 0], [0, math.cos(theta_x), -math.sin(theta_x)], [0, math.sin(theta_x), math.cos(theta_x)]])
+    cos_theta = math.cos(theta_x)
+    sin_theta = math.sin(theta_x)
+
+    return np.array([
+        [1, 0, 0, 0],
+        [0, cos_theta, -sin_theta, 0],
+        [0, sin_theta, cos_theta, 0]
+        [0, 0, 0, 1]
+    ])
 
 def HomogeneousTranRot_Y(theta_y):
-    return np.array([[math.cos(theta_y), 0, math.sin(theta_y)], [0, 1, 0], [-math.sin(theta_y), 0, math.cos(theta_y)]])
+    cos_theta = math.cos(theta_y)
+    sin_theta = math.sin(theta_y)
+
+    return np.array([
+        [cos_theta, 0, sin_theta, 0],
+        [0, 1, 0, 0],
+        [-sin_theta, 0, cos_theta, 0],
+        [0, 0, 0, 1]
+    ])
 
 def HomogeneousTranRot_Z(theta_z):
-    return np.array([[math.cos(theta_z), -math.sin(theta_z), 0], [math.sin(theta_z), math.cos(theta_z), 0], [0, 0, 1]])
+    cos_theta = math.cos(theta_z)
+    sin_theta = math.sin(theta_z)
+
+    return np.array([
+        [cos_theta, -sin_theta, 0, 0],
+        [sin_theta, cos_theta, 0, 0],
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ])
 
 def HomogeneousTranTranslation(x,y,z):
-    return np.array([x, y, z])
+    identity = np.eye(4)
+    identity[:3, 3] = [x, y, z]
+
+    return identity
 
 def forward_kinematics(theta: list[int], x, y, h = 0.082):
     """
     theta: a list of angles starting from base wrt to world, then each joint wrt to the previous.
     """
-    R_w_0 = HomogeneousTranRot_Z(theta[0])
-    p_w_0 = HomogeneousTranTranslation(x, y, h)
-    t_world_0 = np.array([[R_w_0[0], p_w_0[0]], [R_w_0[1], p_w_0[1]], [R_w_0[2], p_w_0[2]], [0, 0, 0, 1]])
+    t_world_0 = HomogeneousTranTranslation(x, y, h) @ HomogeneousTranRot_Z(theta[0])
 
-    R_0_1 = HomogeneousTranRot_Z(theta[1])
-    p_0_1 = HomogeneousTranTranslation(0, 0, limbs["l1"])
-    t_0_1 = np.array([[R_0_1[0], p_0_1[0]], [R_0_1[1], p_0_1[1]], [R_0_1[2], p_0_1[2]], [0, 0, 0, 1]])
+    t_0_1 = HomogeneousTranTranslation(0, 0, limbs["l1"]) @ HomogeneousTranRot_Z(theta[1])
 
-    R_1_2 = HomogeneousTranRot_Y(theta[2])
-    p_1_2 = HomogeneousTranTranslation(0, 0, limbs["l2"])
-    t_1_2 = np.array([[R_1_2[0], p_1_2[0]], [R_1_2[1], p_1_2[1]], [R_1_2[2], p_1_2[2]], [0, 0, 0, 1]])
+    t_1_2 = HomogeneousTranTranslation(0, 0, limbs["l2"]) @ HomogeneousTranRot_Y(theta[2])
 
-    R_2_3 = HomogeneousTranRot_Y(theta[3])
-    p_2_3 = HomogeneousTranTranslation(limbs["l3"], 0, 0)
-    t_2_3 = np.array([[R_2_3[0], p_2_3[0]], [R_2_3[1], p_2_3[1]], [R_2_3[2], p_2_3[2]], [0, 0, 0, 1]])
+    t_2_3 = HomogeneousTranTranslation(limbs["l3"], 0, 0) @ HomogeneousTranRot_Y(theta[3])
 
-    R_3_4 = HomogeneousTranRot_Y(theta[4])
-    p_3_4 = HomogeneousTranTranslation(limbs["l4"], 0, 0)
-    t_3_4 = np.array([[R_3_4[0], p_3_4[0]], [R_3_4[1], p_3_4[1]], [R_3_4[2], p_3_4[2]], [0, 0, 0, 1]])
+    t_3_4 = HomogeneousTranTranslation(limbs["l4"], 0, 0) @ HomogeneousTranRot_Y(theta[4]) 
 
-    R_4_5 = HomogeneousTranRot_X(theta[5])
-    p_4_5 = HomogeneousTranTranslation(limbs["l5"], 0, 0)
-    t_4_5 = np.array([[R_4_5[0], p_4_5[0]], [R_4_5[1], p_4_5[1]], [R_4_5[2], p_4_5[2]], [0, 0, 0, 1]])
+    t_4_5 = HomogeneousTranTranslation(limbs["l5"], 0, 0) @ HomogeneousTranRot_X(theta[5])
 
-    R_5_tip = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-    p_5_tip = HomogeneousTranTranslation(limbs["l6"], 0, 0)
-    t_5_tip = np.array([[R_5_tip[0], p_5_tip[0]], [R_5_tip[1], p_5_tip[1]], [R_5_tip[2], p_5_tip[2]], [0, 0, 0, 1]])
+    homogeneous_Rot_tran_5_tip = np.array([
+        [1, 0, 0, 0], 
+        [0, 1, 0, 0], 
+        [0, 0, 1, 0],
+        [0, 0, 0, 1]
+    ])
+    t_5_tip = HomogeneousTranTranslation(limbs["l6"]) @ homogeneous_Rot_tran_5_tip
 
-    return t_world_0 @ t_0_1 @ t_1_2 @ t_2_3 @ t_3_4 @ t_4_5 @ t_5_tip # I'm not sure if we should be calculating end-effector's pose wrt the world frame or the base of the robot
+    return t_world_0 @ t_0_1 @ t_1_2 @ t_2_3 @ t_3_4 @ t_4_5 @ t_5_tip
