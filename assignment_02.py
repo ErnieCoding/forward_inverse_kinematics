@@ -4,12 +4,12 @@ import math
 from numpy.typing import NDArray
 
 limbs = {
-    "l1": 0.0735,
-    "l2": 0.0648, 
-    "l3": 0.1160, 
-    "l4": 0.1350, 
-    "l5": 0.0637, 
-    "l6": 0.0984
+    "l1": (0.0, 0.0, 0.0735),
+    "l2": (0.0, 0.0, 0.0648),
+    "l3": (0.1160, 0.0, 0.0),
+    "l4": (0.1350, 0.0, 0.0),
+    "l5": (0.0637, 0.0, 0.0),
+    "l6": (0.0984, 0.0, 0.0),
 }
 
 def HomogeneousTranRot_X(theta_x):
@@ -57,18 +57,18 @@ def forward_kinematics(theta: list[float] | NDArray[np.float64], x, y, h = 0.082
     """
     t_world_0 = HomogeneousTranTranslation(x, y, h) @ HomogeneousTranRot_Z(theta[0])
 
-    t_0_1 = HomogeneousTranTranslation(0, 0, limbs["l1"]) @ HomogeneousTranRot_Z(theta[1])
+    t_0_1 = HomogeneousTranTranslation(*limbs["l1"]) @ HomogeneousTranRot_Z(theta[1])
 
-    t_1_2 = HomogeneousTranTranslation(0, 0, limbs["l2"]) @ HomogeneousTranRot_Y(theta[2])
+    t_1_2 = HomogeneousTranTranslation(*limbs["l2"]) @ HomogeneousTranRot_Y(theta[2])
 
-    t_2_3 = HomogeneousTranTranslation(limbs["l3"], 0, 0) @ HomogeneousTranRot_Y(theta[3])
+    t_2_3 = HomogeneousTranTranslation(*limbs["l3"]) @ HomogeneousTranRot_Y(theta[3])
 
-    t_3_4 = HomogeneousTranTranslation(limbs["l4"], 0, 0) @ HomogeneousTranRot_Y(theta[4]) 
+    t_3_4 = HomogeneousTranTranslation(*limbs["l4"]) @ HomogeneousTranRot_Y(theta[4]) 
 
-    t_4_5 = HomogeneousTranTranslation(limbs["l5"], 0, 0) @ HomogeneousTranRot_X(theta[5])
+    t_4_5 = HomogeneousTranTranslation(*limbs["l5"]) @ HomogeneousTranRot_X(theta[5])
 
     homogeneous_Rot_tran_5_tip = np.eye(4) # no rotation at the tip
-    t_5_tip = HomogeneousTranTranslation(limbs["l6"], 0, 0) @ homogeneous_Rot_tran_5_tip
+    t_5_tip = HomogeneousTranTranslation(*limbs["l6"]) @ homogeneous_Rot_tran_5_tip
 
     return t_world_0 @ t_0_1 @ t_1_2 @ t_2_3 @ t_3_4 @ t_4_5 @ t_5_tip
 
